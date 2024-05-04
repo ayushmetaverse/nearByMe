@@ -1,17 +1,14 @@
-//
-//  ViewController.swift
-//  NearByMe
-//
-//  Created by apple on 04/05/24.
-//
-
 import UIKit
 import MapKit
 
 class ViewController: UIViewController {
+    
+    var locationManager: CLLocationManager?
+    
+    
     lazy var mapView: MKMapView = {
-       let map = MKMapView()
-//        map.showsUserLocation = true
+        let map = MKMapView()
+        map.showsUserLocation = true
         map.translatesAutoresizingMaskIntoConstraints = false
         return map
     }()
@@ -30,6 +27,14 @@ class ViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        //initialize location manager
+        locationManager = CLLocationManager()
+        locationManager?.delegate = self
+        
+        locationManager?.requestWhenInUseAuthorization()
+        locationManager?.requestLocation()
+        
         setupUI()
     }
 
@@ -53,6 +58,56 @@ class ViewController: UIViewController {
         mapView.centerYAnchor.constraint(equalTo: view.centerYAnchor).isActive = true
         mapView.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
     }
+    
+    func checkLocationAuth() {
+        let locationManager = CLLocationManager()
+        
+        guard let location = locationManager.location else { return }
+        
+        switch locationManager.authorizationStatus {
+        case .authorizedWhenInUse, .authorizedAlways:
+            let region = MKCoordinateRegion(center: location.coordinate, latitudinalMeters: 750 , longitudinalMeters: 750)
+            mapView.setRegion(region, animated: true)
+        case .denied:
+            print("Location access denied.")
+        case .notDetermined, .restricted:
+            print("Location access not determined or restricted.")
+        @unknown default:
+            print("Unknown authorization status.")
+        }
+    }
+
 
 }
 
+
+extension ViewController: UITextFieldDelegate{
+    
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        let text = textField.text ?? ""
+        if !text.isEmpty {
+            
+        }
+        
+        return true
+    }
+   
+}
+
+
+
+extension ViewController: CLLocationManagerDelegate {
+    
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        // Handle updated locations here
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        // Handle location manager errors here
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
+        checkLocationAuth()
+    }
+    
+}
